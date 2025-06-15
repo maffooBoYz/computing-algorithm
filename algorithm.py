@@ -3,7 +3,12 @@ from random import randint
 import tkinter as tk
 original_grid = []
 y, x = 0, 0
-poo = [(-1, -1), (0, 1), (0, 1), (1, 0), (1, 0), (0, -1), (0, -1), (-1, 0)]
+# Offsets for all eight neighbours around a cell
+poo = [
+    (-1, -1), (-1, 0), (-1, 1),
+    (0, -1), (0, 1),
+    (1, -1), (1, 0), (1, 1),
+]
 alive = bool
 while True:
     inpt = input("What size do you want game of life: ")
@@ -26,54 +31,35 @@ def create_button():
     button = tk.Button(text="Click Me", command=solve, fg="red")
     button.grid(column=(inpt//2), row =inpt)
 def solve():
-    new_grid = []
-    y, x = 0, 0
-    for i in range(len(original_grid)):
-        new_grid.append([])
-    for i in range(all_cells):
-        if len(new_grid[y]) == len(original_grid):
-            y += 1
-            x = 0
-        new_grid[y].append(original_grid[y][x])
-        x += 1
-    y, x = 0, 0
-    for i in range(all_cells):
-        total = 0
-        if y == len(original_grid):
-            y = 0
-            x += 1
-        if original_grid[y][x] == 1:
-            alive = True
-            colour = "black"
-        else:
-            alive = False
-            colour = "white"
-        canvas = tk.Canvas(root, bg=colour, height=dimen, width=dimen)
-        canvas.grid(column=x, row=y)
-        for i, j in poo:
-            y += i
-            x += j
-            if ((y < 0) or (x < 0)) or (y < 0 and x < 0):
-                continue
-            if (y == len(original_grid)) or (x == len(original_grid)) or (y == len(original_grid) and x == len(original_grid)):
-                continue
+    # Copy the current grid so we can compute the next generation
+    new_grid = [row[:] for row in original_grid]
+
+    for y in range(len(original_grid)):
+        for x in range(len(original_grid)):
+            alive = original_grid[y][x] == 1
+            total = 0
+
+            for dy, dx in poo:
+                ny, nx = y + dy, x + dx
+                if 0 <= ny < len(original_grid) and 0 <= nx < len(original_grid):
+                    total += original_grid[ny][nx]
+
+            if alive:
+                if total != 2 and total != 3:
+                    new_grid[y][x] = 0
             else:
-                total += original_grid[y][x]
-        x += 1
-        if alive == True:
-            if total != 2 and total != 3:
-                new_grid[y][x] = 0
-        if alive == False:
-            if total == 3:
-                new_grid[y][x] = 1
-        y += 1
-    y, x = 0, 0
-    for i in range(all_cells):
-        if y == len(original_grid):
-            y = 0
-            x += 1
-        original_grid[y][x] = new_grid[y][x]
-        y += 1
+                if total == 3:
+                    new_grid[y][x] = 1
+
+            colour = "black" if new_grid[y][x] == 1 else "white"
+            canvas = tk.Canvas(root, bg=colour, height=dimen, width=dimen)
+            canvas.grid(column=x, row=y)
+
+    # Update the original grid for the next iteration
+    for y in range(len(original_grid)):
+        for x in range(len(original_grid)):
+            original_grid[y][x] = new_grid[y][x]
+
     create_button()
 root = tk.Tk()
 root.title("Game of Life")
