@@ -2,6 +2,7 @@
 from random import randint
 import tkinter as tk
 original_grid = []
+canvas_grid = []
 y, x = 0, 0
 # Offsets for all eight neighbours around a cell
 poo = [
@@ -26,10 +27,24 @@ for i in range(all_cells):
     if len(original_grid[y]) == inpt:
         y += 1
     original_grid[y].append(rando)
+
 dimen = 250/len(original_grid)
+
+root = tk.Tk()
+root.title("Game of Life")
+
+# Build the canvas grid once using the initial cell states
+for y in range(len(original_grid)):
+    canvas_grid.append([])
+    for x in range(len(original_grid)):
+        colour = "black" if original_grid[y][x] == 1 else "white"
+        canvas = tk.Canvas(root, bg=colour, height=dimen, width=dimen)
+        canvas.grid(column=x, row=y)
+        canvas_grid[y].append(canvas)
+
 def create_button():
     button = tk.Button(text="Click Me", command=solve, fg="red")
-    button.grid(column=(inpt//2), row =inpt)
+    button.grid(column=(inpt//2), row=inpt)
 def solve():
     # Copy the current grid so we can compute the next generation
     new_grid = [row[:] for row in original_grid]
@@ -52,8 +67,7 @@ def solve():
                     new_grid[y][x] = 1
 
             colour = "black" if new_grid[y][x] == 1 else "white"
-            canvas = tk.Canvas(root, bg=colour, height=dimen, width=dimen)
-            canvas.grid(column=x, row=y)
+            canvas_grid[y][x].configure(bg=colour)
 
     # Update the original grid for the next iteration
     for y in range(len(original_grid)):
@@ -61,7 +75,6 @@ def solve():
             original_grid[y][x] = new_grid[y][x]
 
     create_button()
-root = tk.Tk()
-root.title("Game of Life")
+
 solve()
 root.mainloop()
